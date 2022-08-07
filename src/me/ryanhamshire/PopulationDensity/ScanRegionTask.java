@@ -130,8 +130,7 @@ public class ScanRegionTask extends Thread
             //in that case, just move on to the next item in the queue
             if (material == null || currentPosition.y < min_y) continue;
 
-            switch (material)
-            {
+            switch (material) {
                 // Check if it's a pass-through-able block
                 case AIR:
                 case CAVE_AIR: // yes this is a thing now in 1.13 ... don't ask me y...
@@ -150,8 +149,7 @@ public class ScanRegionTask extends Thread
                 case DARK_OAK_TRAPDOOR:
                 case IRON_DOOR:
                 case IRON_TRAPDOOR:
-                case LADDER:
-                {
+                case LADDER: {
                     //make a list of adjacent blocks
                     ConcurrentLinkedQueue<Position> adjacentPositionQueue = new ConcurrentLinkedQueue<Position>();
 
@@ -174,15 +172,12 @@ public class ScanRegionTask extends Thread
                     adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y - 1, currentPosition.z));
 
                     //for each adjacent block
-                    while (!adjacentPositionQueue.isEmpty())
-                    {
+                    while (!adjacentPositionQueue.isEmpty()) {
                         Position adjacentPosition = adjacentPositionQueue.remove();
 
-                        try
-                        {
+                        try {
                             //if it hasn't been examined yet
-                            if (!examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z])
-                            {
+                            if (!examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z]) {
                                 //mark it as examined
                                 examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z] = true;
 
@@ -192,8 +187,7 @@ public class ScanRegionTask extends Thread
                         }
 
                         //ignore any adjacent blocks which are outside the snapshots
-                        catch (ArrayIndexOutOfBoundsException e)
-                        {
+                        catch (ArrayIndexOutOfBoundsException e) {
                         }
                     }
                     break;
@@ -205,51 +199,78 @@ public class ScanRegionTask extends Thread
                 case BIRCH_LOG:
                 case JUNGLE_LOG:
                 case ACACIA_LOG:
-                case DARK_OAK_LOG:
-                {
+                case DARK_OAK_LOG: {
                     woodCount++;
                     break;
                 }
 
                 // Check if it's an ore
-                case COAL_ORE:
-                {
+                case COAL_ORE: {
                     coalCount++;
                     break;
+                }
+                case DEEPSLATE_COAL_ORE:
+                {
+                    coalCount++;
                 }
                 case IRON_ORE:
                 {
                     ironCount++;
                     break;
                 }
+                case DEEPSLATE_IRON_ORE:
+                {
+                    ironCount++;
+                }
                 case GOLD_ORE:
                 {
                     goldCount++;
                     break;
+                }
+                case DEEPSLATE_GOLD_ORE:
+                {
+                    goldCount++;
                 }
                 case REDSTONE_ORE:
                 {
                     redstoneCount++;
                     break;
                 }
+                case DEEPSLATE_REDSTONE_ORE:
+                {
+                    redstoneCount++;
+                }
                 case LAPIS_ORE:
                 {
                     lapisCount++;
                     break;
+                }
+                case DEEPSLATE_LAPIS_ORE:
+                {
+                    lapisCount++;
                 }
                 case EMERALD_ORE:
                 {
                     emeraldCount++;
                     break;
                 }
+                case DEEPSLATE_EMERALD_ORE:
+                {
+                    emeraldCount++;
+                }
                 case DIAMOND_ORE:
                 {
                     diamondCount++;
                     break;
                 }
+                case DEEPSLATE_DIAMOND_ORE:
+                {
+                    diamondCount++;
+                }
 
                 // Check if it's a block not placed by players, then break
                 case STONE:
+                case DEEPSLATE:
                 case WATER:
                 case LAVA:
                 case BROWN_MUSHROOM:

@@ -19,7 +19,7 @@
 package me.ryanhamshire.PopulationDensity;
 
 import io.papermc.lib.PaperLib;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -640,7 +640,6 @@ public class PopulationDensity extends JavaPlugin
 
             playerData = this.dataStore.getPlayerData(player);
         }
-
         if (cmd.getName().equalsIgnoreCase("visit") && player != null)
         {
             if (args.length < 1) return false;
@@ -743,6 +742,8 @@ public class PopulationDensity extends JavaPlugin
             {
                 PopulationDensity.sendMessage(player, TextMode.Info, Messages.WhichRegion, capitalize(regionName));
             }
+            Location postLocation = getRegionCenter(currentRegion, true);
+            player.sendMessage(ChatColor.AQUA + "The region post can be found at (" + Math.round(postLocation.getX()) + ", " + Math.round(postLocation.getY()) + ", " + Math.round(postLocation.getZ()) + ")" + ".");
 
             return true;
         } else if (cmd.getName().equalsIgnoreCase("listregions"))
@@ -1239,7 +1240,6 @@ public class PopulationDensity extends JavaPlugin
             PopulationDensity.sendMessage(player, TextMode.Err, Messages.OutsideWorldBorder);
             return;
         }
-
 
         //drop the player from the sky //RoboMWM - only if LaunchAndDropPlayers is enabled
         if (doDrop && !player.getGameMode().equals(GameMode.SPECTATOR))

@@ -20,7 +20,7 @@ package me.ryanhamshire.PopulationDensity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;

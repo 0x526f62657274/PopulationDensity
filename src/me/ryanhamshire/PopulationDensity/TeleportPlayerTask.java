@@ -18,23 +18,15 @@
 
 package me.ryanhamshire.PopulationDensity;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.AnimalTamer;
-import org.bukkit.entity.Animals;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Tameable;
-import org.bukkit.entity.Wolf;
+import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.entity.Cat;
 
 //teleports a player.  useful as scheduled task so that a joining player may be teleported (otherwise error)
 class TeleportPlayerTask extends BukkitRunnable
@@ -100,6 +92,9 @@ class TeleportPlayerTask extends BukkitRunnable
             {
                 entitiesToTeleport.add(entity);
             }
+            if (entity instanceof Allay) {
+                entitiesToTeleport.add(entity);
+            }
 
             if (entity instanceof LivingEntity)
             {
@@ -122,13 +117,30 @@ class TeleportPlayerTask extends BukkitRunnable
 
         if (PopulationDensity.instance.config_teleportAnimals)
         {
+
             for (Entity entity : entitiesToTeleport)
             {
                 if (!(entity instanceof LivingEntity)) continue;
                 LivingEntity livingEntity = (LivingEntity)entity;
-                if (this.makeFallDamageImmune)
-                    dropShipTeleporter.makeEntityFallDamageImmune(livingEntity);
-                entity.teleport(destination, TeleportCause.PLUGIN);
+                if(livingEntity instanceof Player) {
+                    if (this.makeFallDamageImmune)
+                        dropShipTeleporter.makeEntityFallDamageImmune(livingEntity);
+                    entity.teleport(destination, TeleportCause.PLUGIN);
+                }
+                else {
+                    boolean onLeash = livingEntity.isLeashed() && livingEntity.getLeashHolder().equals(player);
+                    if(onLeash) {
+                        livingEntity.setLeashHolder(null);
+                    }
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
+                        if(player.isOnline()) {
+                            entity.teleport(player.getLocation(), TeleportCause.PLUGIN);
+                            if(onLeash) {
+                                livingEntity.setLeashHolder(player);
+                            }
+                        }
+                    }, 20 * 8);
+                }
             }
         }
     }
