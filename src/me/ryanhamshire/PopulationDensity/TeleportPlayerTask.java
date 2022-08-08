@@ -133,7 +133,7 @@ class TeleportPlayerTask extends BukkitRunnable
                         livingEntity.setLeashHolder(null);
                     }
                     Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
-                        if(player.isOnline()) {
+                        if(player.isOnline() && livingEntity != null) {
                             entity.teleport(player.getLocation(), TeleportCause.PLUGIN);
                             if(onLeash) {
                                 livingEntity.setLeashHolder(player);

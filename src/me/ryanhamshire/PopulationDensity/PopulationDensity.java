@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
@@ -645,8 +646,8 @@ public class PopulationDensity extends JavaPlugin
 
             @SuppressWarnings("deprecation")
 
-            OfflinePlayer target = this.getServer().getOfflinePlayer(args[0]);
-            if (target.getName() != null && target.hasPlayedBefore())
+            OfflinePlayer target = this.resolvePlayer(args[0]);
+            if (target != null)
             {
                 PlayerData targetPlayerData = this.dataStore.getPlayerData(target);
                 if (targetPlayerData.homeRegion != null && this.invitesInstance.getInviteUUIDList(target.getUniqueId()).contains(player.getUniqueId().toString()))
@@ -824,8 +825,8 @@ public class PopulationDensity extends JavaPlugin
         } else if (cmd.getName().equalsIgnoreCase("cancelinvite")) {
             if(args.length < 1)
                 return false;
-            OfflinePlayer p = Bukkit.getOfflinePlayer(args[0]);
-            if(p.hasPlayedBefore() && p.getName() != null) {
+            OfflinePlayer p = this.resolvePlayer(args[0]);
+            if(p != null) {
                 try {
                     invitesInstance.removeInvite(player.getUniqueId(), p.getUniqueId());
                     player.sendMessage(ChatColor.AQUA + "Invite canceled for " + p.getName() + ".");
@@ -847,8 +848,8 @@ public class PopulationDensity extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("invite") && player != null)
         {
             if (args.length < 1) return false;
-            OfflinePlayer p = Bukkit.getOfflinePlayer(args[0]);
-            if(p.hasPlayedBefore() && p.getName() != null) {
+            OfflinePlayer p = this.resolvePlayer(args[0]);
+            if(p != null) {
                 try {
                     invitesInstance.addInvite(player.getUniqueId(), p.getUniqueId());
                     if(p.isOnline()) {
