@@ -36,6 +36,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import java.lang.String;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -80,6 +81,8 @@ public class DataStore implements TabCompleter
     //region data cache
     private ConcurrentHashMap<String, RegionCoordinates> nameToCoordsMap = new ConcurrentHashMap<String, RegionCoordinates>();
     private ConcurrentHashMap<RegionCoordinates, String> coordsToNameMap = new ConcurrentHashMap<RegionCoordinates, String>();
+
+    private YamlConfiguration invitesData;
 
     //initialization!
     public DataStore(List<String> regionNames)
@@ -129,6 +132,7 @@ public class DataStore implements TabCompleter
 
         PopulationDensity.AddLogEntry("Open region: \"" + this.getRegionName(this.getOpenRegion()) + "\" at " + this.getOpenRegion().toString() + ".");
     }
+
 
     //used in the spiraling code below (see findNextRegion())
     private enum Direction

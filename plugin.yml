@@ -4,6 +4,12 @@ softdepend: [Multiverse-Core, My Worlds, Transporter, MystCraft]
 version: '${project.version}-${git.commit.id.abbrev}'
 api-version: '1.19'
 commands:
+   cancelinvite:
+     description: Cancel an invite for a player.
+     usage: /cancelinvite <offline player name>
+   invitelist:
+     description: List your current home region invites.
+     usage: /invitelist
    visit:
       description: Teleports the player to a specified region.
       usage: /visit <online player name> OR /visit <region name>

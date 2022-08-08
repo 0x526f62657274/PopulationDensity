@@ -21,17 +21,8 @@ package me.ryanhamshire.PopulationDensity;
 import io.papermc.lib.PaperLib;
 import org.apache.commons.lang3.text.WordUtils;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.World.Environment;
-import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
@@ -58,6 +49,9 @@ public class PopulationDensity extends JavaPlugin
 {
     //for convenience, a reference to the instance of this plugin
     public static PopulationDensity instance;
+
+
+    Invites invitesInstance;
 
     DropShipTeleporter dropShipTeleporterInstance;
 
@@ -493,6 +487,8 @@ public class PopulationDensity extends JavaPlugin
         WorldEventHandler worldEventHandler = new WorldEventHandler();
         pluginManager.registerEvents(worldEventHandler, this);
 
+        this.invitesInstance = new Invites();
+
         //Only load listeners if LaunchAndDrop is enabled in config
         if (config_launchAndDropPlayers || config_launchAndDropNewPlayers)
         {
@@ -648,11 +644,12 @@ public class PopulationDensity extends JavaPlugin
             if (!result.canTeleport) return true;
 
             @SuppressWarnings("deprecation")
-            Player targetPlayer = this.getServer().getPlayerExact(args[0]);
-            if (targetPlayer != null && player.canSee(targetPlayer))
+
+            OfflinePlayer target = this.getServer().getOfflinePlayer(args[0]);
+            if (target.getName() != null && target.hasPlayedBefore())
             {
-                PlayerData targetPlayerData = this.dataStore.getPlayerData(targetPlayer);
-                if (playerData.inviter != null && playerData.inviter.getName().equals(targetPlayer.getName()))
+                PlayerData targetPlayerData = this.dataStore.getPlayerData(target);
+                if (targetPlayerData.homeRegion != null && this.invitesInstance.getInviteUUIDList(target.getUniqueId()).contains(player.getUniqueId().toString()))
                 {
                     if (result.nearPost && this.launchPlayer(player))
                     {
@@ -661,10 +658,13 @@ public class PopulationDensity extends JavaPlugin
                     {
                         this.TeleportPlayer(player, targetPlayerData.homeRegion, 0);
                     }
+                    if(target.isOnline()) {
+                        ((Player) target).sendMessage(ChatColor.AQUA + player.getName() + " visited your home region.");
+                    }
 
                 } else if (this.dataStore.getRegionName(targetPlayerData.homeRegion) == null)
                 {
-                    PopulationDensity.sendMessage(player, TextMode.Err, Messages.InvitationNeeded, targetPlayer.getName());
+                    PopulationDensity.sendMessage(player, TextMode.Err, Messages.InvitationNeeded, target.getName());
                     return true;
                 } else
                 {
@@ -677,7 +677,7 @@ public class PopulationDensity extends JavaPlugin
                     }
                 }
 
-                PopulationDensity.sendMessage(player, TextMode.Success, Messages.VisitConfirmation, targetPlayer.getName());
+                PopulationDensity.sendMessage(player, TextMode.Success, Messages.VisitConfirmation, target.getName());
             } else
             {
                 //find the specified region, and send an error message if it's not found
@@ -803,53 +803,66 @@ public class PopulationDensity extends JavaPlugin
             }
 
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("randomregion") && player != null)
-        {
+        } else if (cmd.getName().equalsIgnoreCase("randomregion") && player != null) {
             CanTeleportResult result = this.playerCanTeleport(player, false);
             if (!result.canTeleport) return true;
 
             RegionCoordinates randomRegion = this.dataStore.getRandomRegion(RegionCoordinates.fromLocation(player.getLocation()));
 
-            if (randomRegion == null)
-            {
+            if (randomRegion == null) {
                 PopulationDensity.sendMessage(player, TextMode.Err, Messages.NoMoreRegions);
-            } else
-            {
-                if (result.nearPost && this.launchPlayer(player))
-                {
+            } else {
+                if (result.nearPost && this.launchPlayer(player)) {
                     this.TeleportPlayer(player, randomRegion, 1);
-                } else
-                {
+                } else {
                     this.TeleportPlayer(player, randomRegion, 0);
                 }
 
             }
 
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("invite") && player != null)
+        } else if (cmd.getName().equalsIgnoreCase("cancelinvite")) {
+            if(args.length < 1)
+                return false;
+            OfflinePlayer p = Bukkit.getOfflinePlayer(args[0]);
+            if(p.hasPlayedBefore() && p.getName() != null) {
+                try {
+                    invitesInstance.removeInvite(player.getUniqueId(), p.getUniqueId());
+                    player.sendMessage(ChatColor.AQUA + "Invite canceled for " + p.getName() + ".");
+                }
+                catch(IllegalArgumentException ex) {
+                    player.sendMessage(ChatColor.RED + ex.getMessage());
+                }
+            }
+            return true;
+        }
+        else if (cmd.getName().equalsIgnoreCase("invitelist")) {
+            StringBuilder sb = new StringBuilder(ChatColor.AQUA + "Your invites: ");
+            for(OfflinePlayer p : this.invitesInstance.getInvitesForPlayer(player.getUniqueId())) {
+                sb.append(p.getName()).append(" ");
+            }
+            player.sendMessage(sb.substring(0, sb.toString().length() - 1));
+            return true;
+        }
+        else if (cmd.getName().equalsIgnoreCase("invite") && player != null)
         {
             if (args.length < 1) return false;
-
-            //send a notification to the invitee, if he's available
-            @SuppressWarnings("deprecation")
-            Player invitee = this.getServer().getPlayer(args[0]);
-            if (invitee != null && player.canSee(invitee))
-            {
-                playerData = this.dataStore.getPlayerData(invitee);
-                if (playerData.inviter == player)
-                {
-                    PopulationDensity.sendMessage(player, TextMode.Success, Messages.InviteAlreadySent, invitee.getName(), player.getName());
-                    return true;
+            OfflinePlayer p = Bukkit.getOfflinePlayer(args[0]);
+            if(p.hasPlayedBefore() && p.getName() != null) {
+                try {
+                    invitesInstance.addInvite(player.getUniqueId(), p.getUniqueId());
+                    if(p.isOnline()) {
+                        ((Player) p).sendMessage(ChatColor.AQUA + player.getName() + " invited you to their home region. Use /visit " + player.getName() + " to visit.");
+                    }
+                    player.sendMessage(ChatColor.AQUA + "You invited " + p.getName() + " to your home region.");
                 }
-                playerData.inviter = player;
-                PopulationDensity.sendMessage(player, TextMode.Success, Messages.InviteConfirmation, invitee.getName(), player.getName());
-                PopulationDensity.sendMessage(invitee, TextMode.Success, Messages.InviteNotification, player.getName());
-                PopulationDensity.sendMessage(invitee, TextMode.Instr, Messages.InviteInstruction, player.getName());
-            } else
-            {
-                PopulationDensity.sendMessage(player, TextMode.Err, Messages.PlayerNotFound, args[0]);
+                catch(IllegalArgumentException ex) {
+                    player.sendMessage(ChatColor.RED + ex.getMessage());
+                }
             }
-
+            else {
+                player.sendMessage(ChatColor.RED + "That player could not be found.");
+            }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("sendregion"))
         {
