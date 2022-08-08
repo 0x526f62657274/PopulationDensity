@@ -11,3 +11,6 @@ The invite system has been expanded with the following commands.
 
 ## Animal Teleportation
 Animals are no longer teleported into the sky. Instead, when a player teleports, after a short delay, the animal will be teleported to the player, and leashes are preserved. This is mainly for better compatibility with flying animals such as the Allay in 1.19.
+
+## Whichregion Command
+The command `/whichregion` will now show the location of the nearest region post. While it is possible for a player to find this manually using an equation, not everyone may know how to do this.
